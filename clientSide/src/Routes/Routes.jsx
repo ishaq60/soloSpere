@@ -12,6 +12,7 @@ import ErrorPage from "../Pages/ErrorPage";
 import MyPostedJob from "../Components/MyPostedJob";
 import PrivateRoutes from "../Provider/PrivateRoutes";
 import MyBids from "../Pages/MyBids";
+import BidsRequest from "../Pages/BidsRequest";
 
 const router = createBrowserRouter([
 {
@@ -69,6 +70,10 @@ element:<Register/>
   <MyBids/>
       </PrivateRoutes>
     
+    },
+    {
+      path:"/bid-request",
+      element:<BidsRequest/>
     }
   ]
 }

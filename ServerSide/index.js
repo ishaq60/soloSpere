@@ -43,6 +43,9 @@ run().catch(console.dir);
 const jobCollection = client.db('soloSpehere').collection('Jobs');
 const bitCollection = client.db('soloSpehere').collection('bids');
 
+//JWT Generate
+
+
 // Define routes
 app.get("/jobs", async (req, res) => {
   const result = await jobCollection.find().toArray();
@@ -136,6 +139,48 @@ app.get('/jobs/:email', async (req, res) => {
     res.status(500).send({ message: "Server error" });
   }
 });
+
+
+//git add bit 
+app.get('/my-bids/:email', async (req, res) => {
+  const email = req.params.email;
+  try {
+    const query = { "email": email };
+    const result = await bitCollection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+
+//Get all  bid request from db for job owner
+
+app.get('/bids-request/:email', async (req, res) => {
+  const email = req.params.email;
+  try {
+    const query = {  'bayerEmail':email };
+    const result = await bitCollection.find(query).toArray();
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching jobs:", error);
+    res.status(500).send({ message: "Server error" });
+  }
+});
+//updateStatus
+app.patch('/bid/:id',async(req,res)=>{
+  const id=req.params.id
+  const {status}=req.body
+  console.log(status);
+ 
+  const query={_id:new ObjectId(id)};
+  const updateDocs={
+    $set:{status}
+  };
+  const result=await bitCollection.updateOne(query,updateDocs)
+  res.send(result)
+})
+
 
 app.get('/', (req, res) => {
   res.send("Hello server is running");

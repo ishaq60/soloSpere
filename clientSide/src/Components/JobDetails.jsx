@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { Navigate, useLoaderData, useNavigate } from "react-router-dom";
 import { AuthContext } from "../Provider/AuthProvider";
 
 import DatePicker from "react-datepicker";
@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import toast from "react-hot-toast";
 const JobDetails = () => {
+  const navigate=useNavigate()
     const [startDate, setStartDate] = useState(new Date());
     const {user}=useContext(AuthContext)
   const job = useLoaderData();
@@ -22,6 +23,7 @@ const JobDetails = () => {
     _id,
     buyer_email,
     category,
+    bayer
   } = job || {};
 
   const handaleJobBits = async (e) => {
@@ -35,7 +37,7 @@ return toast.error("Offer more or at least equal to minimum Price")
     }
     const comment = form.comment.value;
        const deadline=startDate
-    const email = email;
+    const email = user.email
     const bayerEmail = buyer_email;
     const status = "pending";
     const bitData = {
@@ -50,17 +52,24 @@ deadline,
       job_title,
     };
     console.table(bitData)
+    if(buyer_email.email==email){
+      toast.error("You can not parmetted")
+      return
+    }
+    
     try{
         const { data } = await axios.post('http://localhost:8000/bit', bitData);
         console.log("Response received:", data);
         if(data?.result.insertedId){
             toast.success("Job Bit successfully")
+            navigate('my-bids')
         }
     }
     catch (err){
         console.log(err);
     }
   };
+  console.log(bayer);
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-around gap-5  items-center min-h-[calc(100vh-306px)] md:max-w-screen-xl mx-auto ">
@@ -89,7 +98,7 @@ deadline,
             <div className="flex items-center gap-5">
               <div>
                 <p className="mt-2 text-sm  text-gray-600 ">
-                  Name: Jhankar Vai.
+    {bayer.name}
                 </p>
                 <p className="mt-2 text-sm  text-gray-600 ">{buyer_email}</p>
               </div>
