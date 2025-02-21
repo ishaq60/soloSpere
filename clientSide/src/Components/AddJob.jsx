@@ -1,14 +1,15 @@
-import React, { useContext, useState } from "react";
+import React, {  useState } from "react";
 import DatePicker from "react-datepicker";
-import { AuthContext } from "../Provider/AuthProvider";
+
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import useAuth from "../hooks/useAuth";
 
 const AddJob = () => {
   const [startDate, setStartDate] = useState(new Date());
-  const { user } = useContext(AuthContext);
-  const Nvaigate = useNavigate();
+  const { user } =useAuth()
+  const Navigate = useNavigate();
 
   const handaleJobAdded = async (e) => {
     e.preventDefault();
@@ -43,6 +44,7 @@ const AddJob = () => {
         console.log("Response received:", data);
         if(data?.result.insertedId){
             toast.success("Job Added  successfully")
+            Navigate('/')
         }
     }
     catch (err){

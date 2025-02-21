@@ -1,69 +1,86 @@
 import React, { useContext } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../Provider/AuthProvider';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Register = () => {
-  const navigate=useNavigate()
-  const location=useLocation()
-  const form=location.state || '/'
-  const {setUser,
-    loading,
-    setLoading,
+  const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = location.state || '/';
+
+  const {
+    setUser,
     createUser,
-    user,
-    signIn,
-    signInWithGoogle,  updateUserProfile,
-    logOut}=useContext(AuthContext)
-  
+    signInWithGoogle,
+    updateUserProfile
+  } = useContext(AuthContext);
 
-  const handaleSignInWithGoogle=async()=>{
-    try{
-       await signInWithGoogle()
-       toast.success("Login successfully")
-       Navigate('/')
+  const handleSignInWithGoogle = async () => {
+    try {
+      const result = await signInWithGoogle();
+      if (!result?.user) return;
+
+      const { data } = await axios.post(
+        "http://localhost:8000/jwt",
+        { email: result.user.email },
+        { withCredentials: true }
+      );
+      console.log(data);
+
+      toast.success("Login successfully");
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Google Sign-In Failed");
     }
-    catch (err) {
- console.log(err);
-    }
-}
+  };
 
-const handaleSignUp=async(e)=>{
-  e.preventDefault()
-  const form=e.target
-  const username=form.name.value
-  const email=form.email.value
-  const password=form.password.value
-  const Photourl=form.photo.value
-  const createInfo={username,email,password,Photourl}
-  console.log(createInfo);
-if(password.length<6){
-  toast.error("password at least six character")
-  return
-}
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/;
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const username = form.name.value;
+    const email = form.email.value;
+    const password = form.password.value;
+    const photoURL = form.photo.value;
 
-    if (!passwordRegex.test(password)) {
-      toast.error("Password must be  include at least one uppercase letter, one lowercase letter, and one special character (!@#$%^&*).");
+    if (password.length < 6) {
+      toast.error("Password must be at least six characters");
       return;
     }
-if(password)
-  try{
-    await createUser(email,password)
-    await updateUserProfile(username,Photourl)
-    setUser((prevUser) => ({
-      ...prevUser,
-      photoURL: Photourl,
-      displayName: username
-    }));
-    navigate(form,{replace:true})
-    toast.success(" Account Create Successfully ")
-  }
-  catch(err){
-    console.log(err);
-    toast.error(err)
-  }
-}
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      toast.error("Password must include at least one uppercase letter, one lowercase letter, and one special character (!@#$%^&*).");
+      return;
+    }
+
+    try {
+      const result = await createUser(email, password);
+      if (!result?.user) return;
+
+      await updateUserProfile(username, photoURL);
+      setUser((prevUser) => ({
+        ...prevUser,
+        photoURL,
+        displayName: username,
+      }));
+
+      const { data } = await axios.post(
+        "http://localhost:8000/jwt",
+        { email: result.user.email },
+        { withCredentials: true }
+      );
+      console.log(data);
+
+      navigate(redirectPath, { replace: true });
+      toast.success("Account created successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Sign-up failed");
+    }
+  };
+
 
     return (
         <div>
@@ -82,7 +99,7 @@ if(password)
             Get Your Free Account Now.
           </p>
 
-          <div onClick={handaleSignInWithGoogle} className='flex cursor-pointer items-center justify-center mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg   hover:bg-gray-50 '>
+          <div onClick={handleSignInWithGoogle} className='flex cursor-pointer items-center justify-center mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg   hover:bg-gray-50 '>
             <div className='px-4 py-2'>
               <svg className='w-6 h-6' viewBox='0 0 40 40'>
                 <path
@@ -118,7 +135,7 @@ if(password)
 
             <span className='w-1/5 border-b dark:border-gray-400 lg:w-1/4'></span>
           </div>
-          <form onSubmit={handaleSignUp}>
+          <form onSubmit={ handleSignUp}>
             <div className='mt-4'>
               <label
                 className='block mb-2 text-sm font-medium text-gray-600 '
@@ -200,7 +217,6 @@ if(password)
               to='/login'
               className='text-xs text-gray-500 uppercase  hover:underline'
             >
-              or sign in
             </Link>
 
             <span className='w-1/5 border-b  md:w-1/4'></span>

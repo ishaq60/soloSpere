@@ -4,6 +4,7 @@ import bgimg from '../../../public/images/login.jpg'
 import logo from '../../../public/images/logo.png'
 import { AuthContext } from '../../Provider/AuthProvider';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const LogIn = () => {
     const navigate=useNavigate()
@@ -18,7 +19,17 @@ const LogIn = () => {
            },[navigate,user])
         const handaleSignInWithGoogle=async()=>{
              try{
-                await signInWithGoogle()
+              const result=  await signInWithGoogle()
+              console.log(result.user);
+              //2.Get token form server side
+              
+              const { data } = await axios.post(
+                "http://localhost:8000/jwt",
+                { email: result?.user.email }, // Only send necessary data
+                { withCredentials: true } // Ensures cookies are stored
+              );
+              console.log(data);
+        
                 toast.success("Login successfully")
                 navigate(form,{replace:true})
              }
@@ -41,9 +52,17 @@ const LogIn = () => {
     const   loginInfo={email,password}
  
  try{
- await  signIn(email,password)
+const result= await  signIn(email,password)
+const { data } = await axios.post(
+  "http://localhost:8000/jwt",
+  { email: result?.user.email }, // Only send necessary data
+  { withCredentials: true } // Ensures cookies are stored
+);
+console.log(data);
+
   toast.success("Login Successfully")
   navigate(form,{replace:true})
+  navigate('/')
  }
  catch (err) {
 console.log(err);

@@ -1,8 +1,9 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
+const jwt=require ('jsonwebtoken')
 require('dotenv').config();
-
+const cookieParser=require('cookie-parser')
 const port = process.env.PORT || 8000;
 
 const app = express();
@@ -14,8 +15,32 @@ const corsOption = {
 };
 
 app.use(cors(corsOption));
-app.use(express.json());  // JSON parsing middleware, no need for a second call
+app.use(express.json());
+  // JSON parsing middleware, no need for a second call
 
+
+//verify jwt middleware
+
+const verifyToken=(req,res,next)=>{
+  const token =req.cookies?.token
+  if(!token) return res.status(401).send({message:'Unauthorized: No token provided'})
+
+  if(token){
+    jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(error,decoded)=>{
+    if(error){
+      return res.status({message:'Unbothered token'})
+    }
+    console.log(decoded)
+    req.user=decoded
+    next()
+    })
+ 
+  }
+
+}
+
+
+app.use(cookieParser())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.vu8ej.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -44,7 +69,33 @@ const jobCollection = client.db('soloSpehere').collection('Jobs');
 const bitCollection = client.db('soloSpehere').collection('bids');
 
 //JWT Generate
+app.post('/jwt', async (req, res) => {
+  const email = req.body;
+  const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: '365d',
+  });
+  res.cookie('token',token,{
+    httpOnly:true,
+    secure:process.env.NODE_ENV==='production',
+    sameSite:process.env.NODE_ENV==='production'?'none':'strict'
+  })
+  res.send({success:true}) // Send the token in the response
+});
 
+//clear token on Logout
+
+app.get('/logout',(req,res)=>{
+
+
+  res.clearCookie('token',{
+    httpOnly:true,
+    secure:process.env.NODE_ENV==='production',
+    sameSite:process.env.NODE_ENV==='production'?'none':'strict',
+    maxAge:0,
+  })
+.send({success:true})
+
+})
 
 // Define routes
 app.get("/jobs", async (req, res) => {
@@ -92,7 +143,7 @@ app.delete('/jobs/:id', async (req, res) => {
 
 //save a bid data in database
 
-app.post('/bit', async (req, res) => {
+app.post('/bit',verifyToken, async (req, res) => {
   try {
     const bitData = req.body; // Ensure body parsing middleware is used
     const result = await bitCollection.insertOne(bitData);
@@ -128,8 +179,17 @@ app.post('/jobs', async (req, res) => {
 //     res.status(500).send({ message: "Server error" });
 //   }
 // });
-app.get('/jobs/:email', async (req, res) => {
+
+//specific job find
+app.get('/jobs/:email', verifyToken,async (req, res) => {
+
+const tokenEmail=req.user.email
+console.log('hi',  tokenEmail);
+
   const email = req.params.email;
+  // if(tokenEmail !==email){
+  //   return res.status(403).send({message:'Forbidden token'})
+  // }
   try {
     const query = { 'buyer_email': email };
     const result = await jobCollection.find(query).toArray();
@@ -142,7 +202,7 @@ app.get('/jobs/:email', async (req, res) => {
 
 
 //git add bit 
-app.get('/my-bids/:email', async (req, res) => {
+app.get('/my-bids/:email',verifyToken, async (req, res) => {
   const email = req.params.email;
   try {
     const query = { "email": email };
@@ -156,7 +216,7 @@ app.get('/my-bids/:email', async (req, res) => {
 
 //Get all  bid request from db for job owner
 
-app.get('/bids-request/:email', async (req, res) => {
+app.get('/bids-request/:email',verifyToken, async (req, res) => {
   const email = req.params.email;
   try {
     const query = {  'bayerEmail':email };

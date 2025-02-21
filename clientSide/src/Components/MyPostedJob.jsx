@@ -1,17 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../Provider/AuthProvider';
+
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import useAuth from '../hooks/useAuth';
+import useAxiosSecure from '../hooks/useAxiosSecure';
 
 const MyPostedJob = () => {
-  const { user } = useContext(AuthContext);
+  const {user}=useAuth()
+
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
     if (user?.email) {
       const getData = async () => {
         try {
-          const { data } = await axios.get(`http://localhost:8000/jobs/${user.email}`);
+          const { data } = await  axios.get(`http://localhost:8000/jobs/${user.email}`,{
+            withCredentials:true
+          });
           setJobs(data);
         } catch (error) {
           console.error("Error fetching jobs:", error);

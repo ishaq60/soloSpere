@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const JobCard = ({job}) => {
-  console.log(job);
+
   const {job_title,deadline,
     description
     ,max_price,min_price,
