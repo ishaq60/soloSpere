@@ -57,17 +57,20 @@ deadline,
       return
     }
     
-    try{
-        const { data } = await axios.post('http://localhost:8000/bit', bitData);
-        console.log("Response received:", data);
-        if(data?.result.insertedId){
-            toast.success("Job Bit successfully")
-            navigate('my-bids')
-        }
-    }
-    catch (err){
-        console.log(err);
-    }
+    try {
+      const { data } = await axios.post('http://localhost:8000/bit', bitData, {
+          withCredentials: true  // Ensure cookies or tokens are sent with the request
+      });
+      console.log("Response received:", data);
+      if (data?.result.insertedId) {
+          toast.success("Job Bit successfully");
+          navigate('/');
+      }
+  }
+  catch (err) {
+      console.log(err);
+  }
+  
   };
   console.log(bayer);
   return (

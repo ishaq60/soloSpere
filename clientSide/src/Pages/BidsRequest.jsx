@@ -15,7 +15,9 @@ const BidsRequest = () => {
    
         const getData=async()=>{
             try{
-      const {data}= await axios.get(`http://localhost:8000/bids-request/${user.email}`)
+      const {data}= await axios.get(`http://localhost:8000/bids-request/${user.email}`,{
+        withCredentials:true
+      })
       setbids(data)
             }
             catch(error){

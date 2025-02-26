@@ -143,7 +143,7 @@ app.delete('/jobs/:id', async (req, res) => {
 
 //save a bid data in database
 
-app.post('/bit',verifyToken, async (req, res) => {
+app.post('/bit', async (req, res) => {
   try {
     const bitData = req.body; // Ensure body parsing middleware is used
     const result = await bitCollection.insertOne(bitData);
@@ -154,7 +154,7 @@ app.post('/bit',verifyToken, async (req, res) => {
   }
 });
 //Job added
-app.post('/jobs', async (req, res) => {
+app.post('/jobs',verifyToken, async (req, res) => {
   try {
     const JobData = req.body; // Ensure body parsing middleware is used
     const result = await jobCollection.insertOne(JobData);

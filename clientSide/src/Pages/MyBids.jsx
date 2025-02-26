@@ -16,7 +16,9 @@ useEffect(()=>{
 
   const getData=async()=>{
     try{
-      const {data}=await axios.get(`http://localhost:8000/my-bids/${user.email}`)
+      const {data}=await axios.get(`http://localhost:8000/my-bids/${user.email}`,{
+        withCredentials:true
+      })
       setbids(data)
   
     } 
