@@ -146,6 +146,17 @@ app.delete('/jobs/:id', async (req, res) => {
 app.post('/bit', async (req, res) => {
   try {
     const bitData = req.body; // Ensure body parsing middleware is used
+    //duplicate data find
+    const query={
+      email:bitData.email,
+      jobId:bitData.jobId,
+    }
+    const alreadyApplied=await  bitCollection.findOne(query)
+   if(alreadyApplied){
+    return res.
+    status(400)
+    .send('You have Already placed a bid on this jobs')
+   }
     const result = await bitCollection.insertOne(bitData);
     res.status(201).json({ message: "Data inserted successfully", result });
   } catch (error) {
@@ -240,6 +251,34 @@ app.patch('/bid/:id',async(req,res)=>{
   const result=await bitCollection.updateOne(query,updateDocs)
   res.send(result)
 })
+
+//Get all jobs data from db for pagination
+app.get("/all-jobs", async (req, res) => {
+  const size = parseInt(req.query.size);
+  const page = parseInt(req.query.page) - 1;
+ const filter = req.query.filter;
+ const sort=req.query.sort
+  console.log(filter,sort);
+  let query = {};
+
+  if (filter) query = { category:filter };
+
+  const result = await jobCollection.find(query).skip(page * size).limit(size).toArray();
+
+  res.send(result);
+});
+
+
+//Get all jobs count from db
+app.get("/jobs-count", async (req, res) => {
+  const count = await jobCollection.countDocuments()
+  
+  res.send({count});
+});
+
+
+
+
 
 
 app.get('/', (req, res) => {

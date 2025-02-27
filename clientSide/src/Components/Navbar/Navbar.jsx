@@ -34,6 +34,11 @@ const Navbar = () => {
          <div>Home</div>
         </li>
       </NavLink>
+      <NavLink to="/all-jobs">
+      <li>
+         <div>AllJobs</div>
+        </li>
+      </NavLink>
           {
             !user &&
             <NavLink to='/login'>

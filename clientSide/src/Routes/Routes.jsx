@@ -13,6 +13,7 @@ import MyPostedJob from "../Components/MyPostedJob";
 import PrivateRoutes from "../Provider/PrivateRoutes";
 import MyBids from "../Pages/MyBids";
 import BidsRequest from "../Pages/BidsRequest";
+import AllJobs from "../Pages/AllJobs";
 
 const router = createBrowserRouter([
 {
@@ -73,7 +74,19 @@ element:<Register/>
     },
     {
       path:"/bid-request",
-      element:<BidsRequest/>
+      element:<PrivateRoutes>
+  <BidsRequest/>
+      </PrivateRoutes>
+    
+    },
+    {
+      path:'/all-jobs',
+      element:<AllJobs></AllJobs>,
+      // loader: async () => {
+      //   const response = await fetch('http://localhost:8000/jobs');
+      //   const data = await response.json();
+      //   return data; // This will be available via useLoaderData
+      // }
     }
   ]
 }

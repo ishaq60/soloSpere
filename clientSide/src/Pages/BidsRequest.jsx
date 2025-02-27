@@ -2,59 +2,69 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../Provider/AuthProvider';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 
 const BidsRequest = () => {
-    const {user}=useContext(AuthContext)
-    const [bids,setbids]=useState([])
+  const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient(); // ✅ Initialize queryClient
 
+  // Fetch data function
+  const getData = async () => {
+    if (!user?.email) {
+      console.error("User email is not available");
+      return [];
+    }
+    try {
+      const { data } = await axios.get(
+        `http://localhost:8000/bids-request/${user.email}`,
+        { withCredentials: true }
+      );
+      return data;
+    } catch (error) {
+      console.error("Error fetching bids", error);
+      throw error; // React Query expects errors to be thrown
+    }
+  };
 
-    useEffect(()=>{
-    getData()
-    },[user])
-   
-        const getData=async()=>{
-            try{
-      const {data}= await axios.get(`http://localhost:8000/bids-request/${user.email}`,{
-        withCredentials:true
-      })
-      setbids(data)
-            }
-            catch(error){
-          console.error("Error Fatching jobs",error);
-            }
-        }
-    
-   
+  // Fetch bids with react-query
+  const { data: bids = [], isLoading, isError, error } = useQuery({
+    queryFn: getData,
+    queryKey: ["bids", user?.email], // Re-fetch when email changes
+    enabled: !!user?.email, // Only fetch if user email is available
+  });
 
-console.log(bids);
+  // ✅ Mutation for updating bid status
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ id, status }) => {
+      const { data } = await axios.patch(`http://localhost:8000/bid/${id}`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Data updated successfully");
+      queryClient.invalidateQueries(["bids"]); // ✅ Ensure updated data is fetched
+    },
+  });
 
-const handleRequest = async (id,prevStatus, status) => {
-console.log(prevStatus,status);
- 
-if(prevStatus===status){
-  toast.error("Al ready added")
-  return
-}
+  // ✅ Ensure handleRequest does not contain hooks
+  const handleRequest = async (id, prevStatus, status) => {
+    if (prevStatus === status) {
+      toast.error("Already added");
+      return;
+    }
 
-  try {
-    console.log(`Updating bid ${id} with status: ${status}`);
-    
-    const { data } = await axios.patch(`http://localhost:8000/bid/${id}`, { status });
+    try {
+      console.log(`Updating bid ${id} with status: ${status}`);
+      await mutateAsync({ id, status });
+    } catch (error) {
+      console.error("Error updating bid:", error.response?.data || error.message);
+      toast.error(error.response?.data|| error.message)
+    }
+  };
 
-    console.log("Response:", data);
-     getData();
-
-   
-  // Return data if needed
-  } catch (error) {
-    console.error("Error updating bid:", error.response?.data || error.message);
-  }
-
- 
-};
-
-
+  // ✅ Handle loading and error states
+  if (isLoading) return <p>Data is still loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
     return (
         <div>
          <section className='container px-4 mx-auto pt-12'>
