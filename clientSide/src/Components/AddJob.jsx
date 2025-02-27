@@ -40,7 +40,9 @@ const AddJob = () => {
     };
     console.table(Jobdata);
     try{
-        const { data } = await axios.post('http://localhost:8000/jobs', Jobdata);
+        const { data } = await axios.post('http://localhost:8000/jobs', Jobdata,{
+          withCredentials:true
+        });
         console.log("Response received:", data);
         if(data?.result.insertedId){
             toast.success("Job Added  successfully")
@@ -49,6 +51,7 @@ const AddJob = () => {
     }
     catch (err){
         console.log(err);
+        toast.error("err")
     }
   };
   return (
