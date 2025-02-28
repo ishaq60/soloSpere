@@ -1,53 +1,47 @@
-import React, { useContext, useEffect, useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import useAuth from '../hooks/useAuth';
-import useAxiosSecure from '../hooks/useAxiosSecure';
+import { Link } from 'react-router-dom';
 
 const MyPostedJob = () => {
-  const {user}=useAuth()
-
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    if (user?.email) {
-      const getData = async () => {
-        try {
-          const { data } = await  axios.get(`http://localhost:8000/jobs/${user.email}`,{
-            withCredentials:true
-          });
-          setJobs(data);
-        } catch (error) {
-          console.error("Error fetching jobs:", error);
-        }
-      };
-      getData();
-    }
-  }, [user]);
-  
-
-
-  const handaleDelete= async(e)=>{
-    e.preventDefault()
-
-
-     try {
-          const { data } = await axios.delete(`http://localhost:8000/jobs/${user._id}`);
-         toast.success("Delete Successfully")
-        } catch (error) {
-          console.error("Error fetching jobs:", error);
-        }
    
+      getData();
+  
+  }, [user]);
 
-    console.log("delete");
-  }
+  const getData = async () => {
+    try {
+      const { data } = await axios.get(`http://localhost:8000/jobs/${user.email}`, {
+        withCredentials: true
+      });
+      setJobs(data);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  const handleDelete = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/jobs/${jobId}`);
+      toast.success("Deleted Successfully");
+      getData();
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
+  };
+
   return (
     <div>
       <section className="container px-4 mx-auto pt-12">
         <div className="flex items-center gap-x-3">
           <h2 className="text-lg font-medium text-gray-800">My Posted Jobs</h2>
-
           <span className="px-3 py-1 text-xs text-blue-600 bg-blue-100 rounded-full">
             {jobs.length}
           </span>
@@ -60,83 +54,33 @@ const MyPostedJob = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th
-                        scope="col"
-                        className="py-3.5 px-4 text-sm font-normal text-left rtl:text-right text-gray-500"
-                      >
-                        <div className="flex items-center gap-x-3">
-                          <span>Title</span>
-                        </div>
-                      </th>
-
-                      <th
-                        scope="col"
-                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500"
-                      >
-                        <span>Deadline</span>
-                      </th>
-
-                      <th
-                        scope="col"
-                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500"
-                      >
-                        <button className="flex items-center gap-x-2">
-                          <span>Price Range</span>
-                        </button>
-                      </th>
-
-                      <th
-                        scope="col"
-                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500"
-                      >
-                        Category
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500"
-                      >
-                        Description
-                      </th>
-
-                      <th className="px-4 py-3.5 text-sm font-normal text-left rtl:text-right text-gray-500">
-                        Edit
-                      </th>
+                      <th className="py-3.5 px-4 text-sm font-normal text-left text-gray-500">Title</th>
+                      <th className="px-4 py-3.5 text-sm font-normal text-left text-gray-500">Deadline</th>
+                      <th className="px-4 py-3.5 text-sm font-normal text-left text-gray-500">Price Range</th>
+                      <th className="px-4 py-3.5 text-sm font-normal text-left text-gray-500">Category</th>
+                      <th className="px-4 py-3.5 text-sm font-normal text-left text-gray-500">Description</th>
+                      <th className="px-4 py-3.5 text-sm font-normal text-left text-gray-500">Actions</th>
                     </tr>
                   </thead>
 
                   {jobs.map((job) => (
                     <tbody key={job._id} className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                          {job.job_title}
+                        <td className="px-4 py-4 text-sm text-gray-500">{job.job_title}</td>
+                        <td className="px-4 py-4 text-sm text-gray-500">{new Date(job.deadline).toLocaleDateString()}</td>
+                        <td className="px-4 py-4 text-sm text-gray-500">Range: ${job.min_price}-${job.max_price}</td>
+                        <td className="px-4 py-4 text-sm text-gray-500">
+                          <span className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60 text-xs">
+                            {job.category}
+                          </span>
                         </td>
-
-                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                        {new Date(job.deadline).toLocaleDateString() }
-                        </td>
-
-                        <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">
-                          Range: ${job.min_price}-${job.max_price}
-                        </td>
-
-                        <td className="px-4 py-4 text-sm whitespace-nowrap">
-                          <div className="flex items-center gap-x-2">
-                            <p className="px-3 py-1 rounded-full text-blue-500 bg-blue-100/60 text-xs">
-                              {job.category}
-                            </p>
-                          </div>
-                        </td>
-
-                        <td
-                          title=""
-                          className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap"
-                        >
-                          {job.description}
-                        </td>
-
+                        <td className="px-4 py-4 text-sm text-gray-500">{job.description}</td>
                         <td className="px-4 py-4 text-sm whitespace-nowrap">
                           <div className="flex items-center gap-x-6">
-                            <button onClick={handaleDelete} className="text-gray-500 transition-colors duration-200 hover:text-red-500 focus:outline-none">
+                            <button
+                              onClick={() => handleDelete(job._id)}
+                              className="text-gray-500 transition-colors duration-200 hover:text-red-500 focus:outline-none"
+                            >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -153,7 +97,7 @@ const MyPostedJob = () => {
                               </svg>
                             </button>
 
-                            <button className="text-gray-500 transition-colors duration-200 hover:text-yellow-500 focus:outline-none">
+                            <Link to={`/update/${job._id}`} className="text-gray-500 transition-colors duration-200 hover:text-yellow-500 focus:outline-none">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -168,7 +112,7 @@ const MyPostedJob = () => {
                                   d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
                                 />
                               </svg>
-                            </button>
+                            </Link>
                           </div>
                         </td>
                       </tr>

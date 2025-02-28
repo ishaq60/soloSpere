@@ -141,6 +141,28 @@ app.delete('/jobs/:id', async (req, res) => {
   }
 });
 
+
+
+//update a job Details
+
+app.put('/job/:id',async(req,res)=>{
+  const id=req.params.id
+
+  const jobData=req.body
+  console.log(id,jobData);
+  const query={_id:new ObjectId(id)}
+  const options={upsert:true}
+  const updateDocs={
+    $set:{
+      ...jobData,
+    }
+   
+  }
+  const result=await jobCollection.updateOne(query,updateDocs,options)
+  res.send(result)
+})
+
+
 //save a bid data in database
 
 app.post('/bit', async (req, res) => {
@@ -258,12 +280,17 @@ app.get("/all-jobs", async (req, res) => {
   const page = parseInt(req.query.page) - 1;
  const filter = req.query.filter;
  const sort=req.query.sort
+ const search=req.query.search
   console.log(filter,sort);
-  let query = {};
+  let query = {
+    job_title: { $regex: search, $options: "i" },
+  };
+  let option={}
+  if(sort) option={sort:{deadline: sort==='asc'?1 :-1}}
 
-  if (filter) query = { category:filter };
+  if (filter) query.category = filter 
 
-  const result = await jobCollection.find(query).skip(page * size).limit(size).toArray();
+  const result = await jobCollection.find(query,option).skip(page * size).limit(size).toArray();
 
   res.send(result);
 });

@@ -11,10 +11,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.66.9",
-<<<<<<< HEAD
-=======
     "@tanstack/react-query-devtools": "^5.66.9",
->>>>>>> 679519e (Paggenatation and filter are Done)
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "firebase": "^11.3.1",

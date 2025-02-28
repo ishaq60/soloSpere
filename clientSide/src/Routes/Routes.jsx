@@ -14,6 +14,7 @@ import PrivateRoutes from "../Provider/PrivateRoutes";
 import MyBids from "../Pages/MyBids";
 import BidsRequest from "../Pages/BidsRequest";
 import AllJobs from "../Pages/AllJobs";
+import UpdateJob from "../Pages/UpdateJob";
 
 const router = createBrowserRouter([
 {
@@ -45,6 +46,14 @@ element:<Register/>
        <JobDetails/>
       </PrivateRoutes>
       
+    ,
+      loader:({params})=>fetch(`http://localhost:8000/job/${params.id}`)
+    },
+    {
+      path:"/update/:id",
+      element: <PrivateRoutes>
+     <UpdateJob/>
+      </PrivateRoutes> 
     ,
       loader:({params})=>fetch(`http://localhost:8000/job/${params.id}`)
     },
